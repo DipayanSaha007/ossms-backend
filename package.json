@@ -1,5 +1,5 @@
 {
-    "name": "salon-service-backend",
+    "name": "ossms-backend",
     "version": "1.0.0",
     "description": "Backend for salon service app",
     "main": "index.js",
