@@ -1,14 +1,21 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS configuration to allow only specific frontend origin
+const allowedOrigins = ['https://ossms-frontend-ksug91lde-dipayansaha007s-projects.vercel.app']; // Update with your frontend URL
+app.use(cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // Root Route
@@ -71,11 +78,11 @@ app.post('/signin', async (req, res) => {
             return res.status(400).json({ message: 'Invalid username' });
         }
 
+        // Compare the provided password with the stored password
         if (password !== user.password) {
             return res.status(400).json({ message: 'Invalid password' });
         }
 
-        const jwt = require('jsonwebtoken');
         const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
         res.status(200).json({ message: 'Sign In Successful', token });
@@ -95,20 +102,20 @@ app.post('/edit-profile', async (req, res) => {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        // Find user by username and email
+        // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found with the provided email' });
         }
 
-        // Update user's username & password (store as plain text)
+        // Update user's username & password
         user.username = newUsername;
         user.password = newPassword;
         await user.save();
 
         res.status(200).json({ message: 'Profile updated successfully' });
     } catch (error) {
-        console.error('Error updating profile:', error); // Log the error for debugging
+        console.error('Error updating profile:', error);
         res.status(500).json({ message: 'Error updating profile. Please try again.', error: error.message || error });
     }
 });
@@ -137,8 +144,8 @@ app.post('/reset-password', async (req, res) => {
         return res.status(404).json({ message: 'No user found with this email' });
     }
 
-    // Update the password (Assuming bcrypt is used for hashing passwords)
-    user.password = newPassword; // You should hash the password before saving it
+    // Update password with the new password
+    user.password = newPassword;
     await user.save();
 
     res.status(200).json({ message: 'Password successfully updated' });
