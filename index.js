@@ -55,6 +55,16 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+// Staff Schema
+const staffSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    rating: { type: Number, required: true },
+    specialty: { type: String, required: true },
+    contact: { type: String, required: true },
+});
+
+const Staff = mongoose.model('Staff', staffSchema);
+
 // Sign-Up Route
 app.post('/signup', async (req, res) => {
     try {
@@ -149,6 +159,36 @@ app.post('/reset-password', async (req, res) => {
     await user.save();
 
     res.status(200).json({ message: 'Password successfully updated' });
+});
+
+// GET /api/staff - Fetch staff list
+app.get('/staff-management', async (req, res) => {
+    try {
+        const staffList = await Staff.find(); // Fetch staff list from the database
+        res.status(200).json(staffList); // Send staff list as JSON response
+    } catch (error) {
+        console.error('Error fetching staff list:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// POST /api/staff - Add a new staff member
+app.post('/add-staff', async (req, res) => {
+    const { name, rating, specialty, contact } = req.body;
+
+    if (!name || !rating || !specialty || !contact) {
+        return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    try {
+        const newStaff = new Staff({ name, rating, specialty, contact });
+        await newStaff.save();
+
+        res.status(201).json({ message: 'Staff added successfully.', staff: newStaff });
+    } catch (error) {
+        console.error('Error adding staff:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
 // Start the server
