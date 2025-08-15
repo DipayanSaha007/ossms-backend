@@ -87,13 +87,17 @@ const Staff = mongoose.model('Staff', staffSchema);
 // Sign-Up Route
 app.post('/signup', async (req, res) => {
     try {
+        console.log('Signup request body:', req.body);
         const { username, email, password } = req.body;
-
         const newUser = new User({ username, email, password });
         await newUser.save();
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error registering user', error });
+        console.error('Signup error:', error); // This will show the exact MongoDB or validation error
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Email already exists' });
+        }
+        res.status(500).json({ message: 'Error registering user', error: error.message });
     }
 });
 
@@ -214,6 +218,7 @@ app.post('/add-staff', async (req, res) => {
 // app.listen(PORT, () => {
 //     console.log(`Server is running on port ${PORT}`);
 // });
+
 
 
 
