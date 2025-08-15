@@ -10,7 +10,13 @@ const PORT = process.env.PORT || 5000;
 // CORS configuration to allow only specific frontend origin
 const allowedOrigins = ['https://ossms-frontend.vercel.app']; // Update with your frontend URL
 app.use(cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -208,6 +214,7 @@ app.post('/add-staff', async (req, res) => {
 // app.listen(PORT, () => {
 //     console.log(`Server is running on port ${PORT}`);
 // });
+
 
 
 
